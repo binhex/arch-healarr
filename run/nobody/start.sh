@@ -2,6 +2,10 @@
 
 # Script to monitor defined containers for a health status of 'unhealthy' and perform a defined action
 
+# script name and version
+readonly ourScriptName=$(basename -- "$0")
+readonly ourFriendlyScriptName="${ourScriptName%.*}"
+
 # source in utils (logging)
 source utils.sh
 
@@ -147,7 +151,7 @@ function send_ntfy_notification() {
   shift
 
 	if [[ "${ENABLE_NTFY}" == "true" && -n "${NTFY_TOPIC}" ]]; then
-		local message="Container '${container_name}' was unhealthy. Action '${ACTION}' ${action_status}."
+		local message="[${ourFriendlyScriptName}] Container '${container_name}' was unhealthy. Action '${ACTION}' (${action_status})."
 		if curl -s -o /dev/null -w "%{http_code}" -d "${message}" "ntfy.sh/${NTFY_TOPIC}" | grep -q "^200$"; then
 			shlog 1 "Ntfy notification sent for container '${container_name}'"
 		else
@@ -196,7 +200,7 @@ function process_unhealthy_container() {
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then
 			shlog 1 "Successfully executed action '${ACTION}' on container '${container_name}'"
-			send_ntfy_notification "${container_name}" "executed successfully"
+			send_ntfy_notification "${container_name}" "SUCCESS"
 		else
 			shlog 3 "Failed to execute action '${ACTION}' on container '${container_name}'"
 			send_ntfy_notification "${container_name}" "FAILED"
