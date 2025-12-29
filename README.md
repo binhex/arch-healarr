@@ -65,7 +65,7 @@ correct values.
 | `CONTAINER_NAME` | string | _(empty)_ | Filter containers by name, comma-separated (e.g. `sonarr,radarr,plex`) |
 | `LOG_LEVEL` | 0\|1\|2\|3 | `1` | Logging level: `0`=DEBUG, `1`=INFO, `2`=WARN, `3`=ERROR |
 | `ENABLE_HEALTHCHECK` | yes\|no | `no` | Enable or disable healthchecks (for this container) |
-| `HEALTHCHECK_COMMAND` | string | `healthcheck.sh` | Custom healthcheck command |
+| `HEALTHCHECK_COMMAND` | string | `healthcheck.sh` | Healthcheck command or script to execute |
 | `HEALTHCHECK_ACTION` | string | `exit 1` | Action on healthcheck failure, e.g. `exit 1` or `kill 1` |
 | `HEALTHCHECK_HOSTNAME` | string | `google.com` | Hostname for healthcheck DNS/HTTPS tests |
 | `PUID` | integer | `99` | User ID for the running container |
