@@ -17,7 +17,7 @@ Healarr monitors Docker containers for unhealthy status and automatically perfor
 
 ## Build notes
 
-Alpine Linux base with Docker CLI.
+Arch Linux base with Docker CLI.
 
 ## Usage
 
