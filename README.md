@@ -64,13 +64,13 @@ correct values.
 | `CONTAINER_ENV_VAR` | string | _(empty)_ | Filter containers by environment variable (e.g. `MONITOR_ENABLED=true`) |
 | `CONTAINER_NAME` | string | _(empty)_ | Filter containers by name, comma-separated (e.g. `sonarr,radarr,plex`) |
 | `LOG_LEVEL` | 0\|1\|2\|3 | `1` | Logging level: `0`=DEBUG, `1`=INFO, `2`=WARN, `3`=ERROR |
-| `ENABLE_HEALTHCHECK` | yes\|no | _(empty)_ | Enable or disable healthchecks for this container |
+| `ENABLE_HEALTHCHECK` | yes\|no | `no` | Enable or disable healthchecks for this container |
 | `HEALTHCHECK_COMMAND` | string | _(empty)_ | Custom healthcheck command (defaults to DNS/HTTPS checks) |
-| `HEALTHCHECK_ACTION` | string | _(empty)_ | Action on healthcheck failure (`exit 1` or `kill 1`) |
+| `HEALTHCHECK_ACTION` | string | `exit 1` | Action on healthcheck failure, e.g. `exit 1` or `kill 1`) |
 | `HEALTHCHECK_HOSTNAME` | string | `google.com` | Hostname for healthcheck DNS/HTTPS tests |
 | `PUID` | integer | `99` | User ID for the running container |
 | `PGID` | integer | `100` | Group ID for the running container |
-| `UMASK` | string | `000` | UMASK for created files |
+| `UMASK` | integer | `000` | UMASK for created files |
 
 **Note:** Filters (`CONTAINER_LABEL`, `CONTAINER_ENV_VAR`, `CONTAINER_NAME`) use OR logic. If no filters are specified, all containers with health checks will be monitored.
 
