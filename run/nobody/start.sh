@@ -3,8 +3,8 @@
 # Script to monitor defined containers for a health status of 'unhealthy' and perform a defined action
 
 # script name and version
-readonly ourScriptName=$(basename -- "$0")
-readonly ourFriendlyScriptName="${ourScriptName%.*}"
+ourScriptName=$(basename -- "$0")
+ourFriendlyScriptName="${ourScriptName%.*}"
 
 # source in utils (logging)
 source utils.sh
