@@ -222,6 +222,9 @@ function process_containers() {
 		# apply filters if specified
 		if [[ -n "${all_containers}" ]]; then
 			filter_containers "${all_containers}"
+		else
+			# clear the global variable if no unhealthy containers found
+			UNHEALTHY_CONTAINERS=""
 		fi
 
 		if [[ -z "${UNHEALTHY_CONTAINERS}" ]]; then
