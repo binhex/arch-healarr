@@ -139,7 +139,7 @@ docker run -d \
     ghcr.io/binhex/arch-healarr
 ```
 
-### Example 4: Monitor by environment variable, stop unhealthy containers
+### Example 4: Monitor containers with specific env vars
 
 ```bash
 docker run -d \
