@@ -8,7 +8,7 @@ source utils.sh
 # trap SIGTERM and SIGINT for graceful shutdown
 trap 'shlog 1 "Received shutdown signal, exiting..."; exit 0' SIGTERM SIGINT
 
-function pre-reqs() {
+function pre_reqs() {
 
 	if ! command -v docker &> /dev/null; then
 		shlog 3 "Docker CLI not found, exiting script..."
@@ -27,47 +27,47 @@ function pre-reqs() {
 
 function env_vars() {
 
-  if [[ -z "${MONITOR_INTERVAL}" ]]; then
-    export MONITOR_INTERVAL=60
-    shlog 2 "MONITOR_INTERVAL not defined, defaulting to '${MONITOR_INTERVAL}' seconds"
-  fi
+	if [[ -z "${MONITOR_INTERVAL}" ]]; then
+		export MONITOR_INTERVAL=60
+		shlog 2 "MONITOR_INTERVAL not defined, defaulting to '${MONITOR_INTERVAL}' seconds"
+	fi
 
-  if [[ -z "${RETRY_COUNT}" ]]; then
-    export RETRY_COUNT=3
-    shlog 2 "RETRY_COUNT not defined, defaulting to '${RETRY_COUNT}'"
-  fi
+	if [[ -z "${RETRY_COUNT}" ]]; then
+		export RETRY_COUNT=3
+		shlog 2 "RETRY_COUNT not defined, defaulting to '${RETRY_COUNT}'"
+	fi
 
-  if [[ -z "${RETRY_DELAY}" ]]; then
-    export RETRY_DELAY=10
-    shlog 2 "RETRY_DELAY not defined, defaulting to '${RETRY_DELAY}' seconds"
-  fi
+	if [[ -z "${RETRY_DELAY}" ]]; then
+		export RETRY_DELAY=10
+		shlog 2 "RETRY_DELAY not defined, defaulting to '${RETRY_DELAY}' seconds"
+	fi
 
-  if [[ -z "${ACTION}" ]]; then
-    export ACTION="restart"
-    shlog 2 "ACTION not defined, defaulting to '${ACTION}'"
-  fi
+	if [[ -z "${ACTION}" ]]; then
+		export ACTION="restart"
+		shlog 2 "ACTION not defined, defaulting to '${ACTION}'"
+	fi
 
-  # log filter configuration
-  local filter_count=0
+	# log filter configuration
+	local filter_count=0
 
-  if [[ -n "${CONTAINER_LABEL}" ]]; then
-    shlog 1 "Filtering containers by label: ${CONTAINER_LABEL}"
-    ((filter_count++))
-  fi
+	if [[ -n "${CONTAINER_LABEL}" ]]; then
+		shlog 1 "Filtering containers by label: ${CONTAINER_LABEL}"
+		((filter_count++))
+	fi
 
-  if [[ -n "${CONTAINER_ENV_VAR}" ]]; then
-    shlog 1 "Filtering containers by environment variable: ${CONTAINER_ENV_VAR}"
-    ((filter_count++))
-  fi
+	if [[ -n "${CONTAINER_ENV_VAR}" ]]; then
+		shlog 1 "Filtering containers by environment variable: ${CONTAINER_ENV_VAR}"
+		((filter_count++))
+	fi
 
-  if [[ -n "${CONTAINER_NAME}" ]]; then
-    shlog 1 "Filtering containers by name(s): ${CONTAINER_NAME}"
-    ((filter_count++))
-  fi
+	if [[ -n "${CONTAINER_NAME}" ]]; then
+		shlog 1 "Filtering containers by name(s): ${CONTAINER_NAME}"
+		((filter_count++))
+	fi
 
-  if [[ ${filter_count} -eq 0 ]]; then
-    shlog 1 "No filters specified, monitoring all containers with healthchecks"
-  fi
+	if [[ ${filter_count} -eq 0 ]]; then
+		shlog 1 "No filters specified, monitoring all containers with healthchecks"
+	fi
 
 }
 
@@ -92,14 +92,14 @@ function filter_containers() {
 			fi
 
 			# check env var filter
-			if [[ -n "${CONTAINER_ENV_VAR}" && "${match}" == "false" ]]; then
+			if [[ -n "${CONTAINER_ENV_VAR}" && "${match}" != "true" ]]; then
 				if docker inspect --format "{{.Config.Env}}" "${container}" 2>/dev/null | grep -q "${CONTAINER_ENV_VAR}"; then
 					match=true
 				fi
 			fi
 
 			# check name filter (comma-separated list)
-			if [[ -n "${CONTAINER_NAME}" && "${match}" == "false" ]]; then
+			if [[ -n "${CONTAINER_NAME}" && "${match}" != "true" ]]; then
 				IFS=',' read -ra names <<< "${CONTAINER_NAME}"
 				for name in "${names[@]}"; do
 					# trim whitespace
@@ -125,7 +125,7 @@ function filter_containers() {
 		unhealthy_containers="${all_containers}"
 	fi
 
-  # create global variable for unhealthy containers after filtering
+	# create global variable for unhealthy containers after filtering
 	UNHEALTHY_CONTAINERS="${unhealthy_containers}"
 
 }
@@ -211,10 +211,10 @@ function process_containers() {
 function main() {
 
 	# check prerequisites
-	pre-reqs
+	pre_reqs
 
-  # process env_vars
-  env_vars
+	# process env_vars
+	env_vars
 
 	# run continuous health check loop
 	process_containers
