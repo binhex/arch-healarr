@@ -47,6 +47,15 @@ function env_vars() {
 		shlog 2 "ACTION not defined, defaulting to '${ACTION}'"
 	fi
 
+	if [[ -z "${ENABLE_NTFY}" ]]; then
+		export ENABLE_NTFY="false"
+		shlog 2 "ENABLE_NTFY not defined, defaulting to '${ENABLE_NTFY}'"
+	fi
+
+	if [[ -n "${NTFY_TOPIC}" ]]; then
+		shlog 1 "Ntfy notifications enabled for topic: ${NTFY_TOPIC}"
+	fi
+
 	# log filter configuration
 	local filter_count=0
 
@@ -130,6 +139,24 @@ function filter_containers() {
 
 }
 
+function send_ntfy_notification() {
+
+	local container_name="${1}"
+  shift
+	local action_status="${1}"
+  shift
+
+	if [[ "${ENABLE_NTFY}" == "true" && -n "${NTFY_TOPIC}" ]]; then
+		local message="Container '${container_name}' was unhealthy. Action '${ACTION}' ${action_status}."
+		if curl -s -o /dev/null -w "%{http_code}" -d "${message}" "ntfy.sh/${NTFY_TOPIC}" | grep -q "^200$"; then
+			shlog 1 "Ntfy notification sent for container '${container_name}'"
+		else
+			shlog 2 "Failed to send ntfy notification for container '${container_name}'"
+		fi
+	fi
+
+}
+
 function process_unhealthy_container() {
 
 	local container_name="${1}"
@@ -169,8 +196,10 @@ function process_unhealthy_container() {
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then
 			shlog 1 "Successfully executed action '${ACTION}' on container '${container_name}'"
+			send_ntfy_notification "${container_name}" "executed successfully"
 		else
 			shlog 3 "Failed to execute action '${ACTION}' on container '${container_name}'"
+			send_ntfy_notification "${container_name}" "FAILED"
 		fi
 	fi
 
