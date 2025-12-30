@@ -151,7 +151,6 @@ function apprise_notifications() {
 	shift
 
 	if [[ -n "${APPRISE_NOTIFICATION_SERVICES}" ]]; then
-		local message="[${ourFriendlyScriptName}] Container '${container_name}' was unhealthy. Action '${ACTION}' (${action_status})."
 
 		# convert comma-separated list to space-separated for apprise
 		local services
@@ -168,8 +167,8 @@ function apprise_notifications() {
 
 		if apprise \
 			-vv \
-			-t "[${ourFriendlyScriptName}] Container Unhealthy" \
-			-b "${message}" \
+			-t "[${ourFriendlyScriptName}] Notification" \
+			-b "Container '${container_name}' was unhealthy. Action '${ACTION}' (${action_status})." \
 			${services}; then
 			shlog 1 "Notification sent for container '${container_name}'"
 		else
