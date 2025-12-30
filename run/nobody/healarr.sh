@@ -87,15 +87,29 @@ function env_vars() {
 function filter_containers() {
 
 	local all_containers="${1}"
-  shift
+	shift
 
 	local unhealthy_containers
+	local current_container_id
+	local current_container_name
+
+	# get current container's ID (hostname in a container is the container ID)
+	current_container_id=$(cat /etc/hostname 2>/dev/null || cat /proc/sys/kernel/hostname 2>/dev/null)
+
+	# get current container's name from docker
+	current_container_name=$(docker inspect --format='{{.Name}}' "${current_container_id}" 2>/dev/null | sed 's#^/##')
 
 	# if any filters are defined, we need to check each container
 	if [[ -n "${CONTAINER_LABEL}" || -n "${CONTAINER_ENV_VAR}" || -n "${CONTAINER_NAME}" ]]; then
 
 		while IFS= read -r container; do
 			local match=false
+
+			# exclude current container (healarr itself)
+			if [[ "${container}" == "${current_container_name}" || "${container}" == "${current_container_id}" ]]; then
+				shlog 1 "Skipping current container '${container}' to prevent self-restart"
+				continue
+			fi
 
 			# check label filter
 			if [[ -n "${CONTAINER_LABEL}" ]]; then
@@ -134,8 +148,19 @@ function filter_containers() {
 			fi
 		done <<< "${all_containers}"
 	else
-		# no filters, use all unhealthy containers
-		unhealthy_containers="${all_containers}"
+		# no filters, use all unhealthy containers but exclude self
+		while IFS= read -r container; do
+			# exclude current container (healarr itself)
+			if [[ "${container}" != "${current_container_name}" && "${container}" != "${current_container_id}" ]]; then
+				if [[ -z "${unhealthy_containers}" ]]; then
+					unhealthy_containers="${container}"
+				else
+					unhealthy_containers="${unhealthy_containers}"$'\n'"${container}"
+				fi
+			else
+				shlog 1 "Skipping current container '${container}' to prevent self-restart"
+			fi
+		done <<< "${all_containers}"
 	fi
 
 	# create global variable for unhealthy containers after filtering
