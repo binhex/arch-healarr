@@ -25,7 +25,12 @@ function pre_reqs() {
 		exit 1
 	fi
 
-	shlog 1 "Docker CLI found and socket accessible"
+	if ! command -v apprise &> /dev/null; then
+		shlog 3 "Apprise CLI not found, exiting script..."
+		exit 1
+	fi
+
+	shlog 1 "Docker CLI and Apprise CLI found and accessible"
 
 }
 
@@ -51,13 +56,8 @@ function env_vars() {
 		shlog 2 "ACTION not defined, defaulting to '${ACTION}'"
 	fi
 
-	if [[ -z "${ENABLE_NTFY}" ]]; then
-		export ENABLE_NTFY="false"
-		shlog 2 "ENABLE_NTFY not defined, defaulting to '${ENABLE_NTFY}'"
-	fi
-
-	if [[ -n "${NTFY_TOPIC}" ]]; then
-		shlog 1 "Ntfy notifications enabled for topic: ${NTFY_TOPIC}"
+	if [[ -n "${APPRISE_NOTIFICATION_SERVICES}" ]]; then
+		shlog 1 "Apprise notifications enabled for services: ${APPRISE_NOTIFICATION_SERVICES}"
 	fi
 
 	# log filter configuration
@@ -143,19 +143,37 @@ function filter_containers() {
 
 }
 
-function send_ntfy_notification() {
+function apprise_notifications() {
 
 	local container_name="${1}"
-  shift
+	shift
 	local action_status="${1}"
-  shift
+	shift
 
-	if [[ "${ENABLE_NTFY}" == "true" && -n "${NTFY_TOPIC}" ]]; then
+	if [[ -n "${APPRISE_NOTIFICATION_SERVICES}" ]]; then
 		local message="[${ourFriendlyScriptName}] Container '${container_name}' was unhealthy. Action '${ACTION}' (${action_status})."
-		if curl -s -o /dev/null -w "%{http_code}" -d "${message}" "ntfy.sh/${NTFY_TOPIC}" | grep -q "^200$"; then
-			shlog 1 "Ntfy notification sent for container '${container_name}'"
+
+		# convert comma-separated list to space-separated for apprise
+		local services
+		IFS=',' read -ra service_array <<< "${APPRISE_NOTIFICATION_SERVICES}"
+		for service in "${service_array[@]}"; do
+			# trim whitespace
+			service=$(echo "${service}" | xargs)
+			if [[ -z "${services}" ]]; then
+				services="${service}"
+			else
+				services="${services} ${service}"
+			fi
+		done
+
+		if apprise \
+			-vv \
+			-t "[${ourFriendlyScriptName}] Container Unhealthy" \
+			-b "${message}" \
+			${services}; then
+			shlog 1 "Notification sent for container '${container_name}'"
 		else
-			shlog 2 "Failed to send ntfy notification for container '${container_name}'"
+			shlog 2 "Failed to send notification for container '${container_name}'"
 		fi
 	fi
 
@@ -200,10 +218,10 @@ function process_unhealthy_container() {
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then
 			shlog 1 "Successfully executed action '${ACTION}' on container '${container_name}'"
-			send_ntfy_notification "${container_name}" "SUCCESS"
+			apprise_notifications "${container_name}" "SUCCESS"
 		else
 			shlog 3 "Failed to execute action '${ACTION}' on container '${container_name}'"
-			send_ntfy_notification "${container_name}" "FAILED"
+			apprise_notifications "${container_name}" "FAILED"
 		fi
 	fi
 
@@ -211,7 +229,7 @@ function process_unhealthy_container() {
 
 function process_containers() {
 
-	shlog 1 "Starting health check loop (interval: ${MONITOR_INTERVAL} seconds)..."
+	shlog 1 "Starting ${} (interval: ${MONITOR_INTERVAL} seconds)..."
 
 	while true; do
 		local all_containers

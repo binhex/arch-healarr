@@ -34,8 +34,7 @@ docker run -d \
     -e CONTAINER_LABEL=<label to filter> \
     -e CONTAINER_ENV_VAR=<env var to filter> \
     -e CONTAINER_NAME=<comma separated names> \
-    -e ENABLE_NTFY=<true|false> \
-    -e NTFY_TOPIC=<ntfy topic> \
+    -e APPRISE_NOTIFICATION_SERVICES=<comma separated apprise service URLs> \
     -e LOG_LEVEL=<0|1|2|3> \
     -e ENABLE_HEALTHCHECK=<yes|no> \
     -e HEALTHCHECK_COMMAND=<command> \
@@ -65,8 +64,7 @@ correct values.
 | `CONTAINER_LABEL` | string | _(empty)_ | Filter containers by label (e.g. `com.example.monitor=true`) |
 | `CONTAINER_ENV_VAR` | string | _(empty)_ | Filter containers by environment variable (e.g. `MONITOR_ENABLED=true`) |
 | `CONTAINER_NAME` | string | _(empty)_ | Filter containers by name, comma-separated (e.g. `sonarr,radarr,plex`) |
-| `ENABLE_NTFY` | true\|false | `false` | Enable ntfy notifications when actions are taken on unhealthy containers |
-| `NTFY_TOPIC` | string | _(empty)_ | Ntfy.sh topic to send notifications to (e.g. `my-healarr-alerts`). Required if `ENABLE_NTFY=true` |
+| `APPRISE_NOTIFICATION_SERVICES` | string | _(empty)_ | Comma-separated list of Apprise service URLs for notifications (e.g. `mailto://user:pass@gmail.com,discord://webhook_id/webhook_token`) |
 | `LOG_LEVEL` | 0\|1\|2\|3 | `1` | Logging level: `0`=DEBUG, `1`=INFO, `2`=WARN, `3`=ERROR |
 | `ENABLE_HEALTHCHECK` | yes\|no | `no` | Enable or disable healthchecks (for this container) |
 | `HEALTHCHECK_COMMAND` | string | `healthcheck.sh` | Healthcheck command or script to execute |

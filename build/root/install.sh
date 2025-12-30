@@ -40,7 +40,7 @@ refresh.sh
 ####
 
 # define pacman packages
-pacman_packages="docker"
+pacman_packages="docker apprise"
 
 # install compiled packages using pacman
 if [[ -n "${pacman_packages}" ]]; then
