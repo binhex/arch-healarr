@@ -229,7 +229,7 @@ function process_unhealthy_container() {
 
 function process_containers() {
 
-	shlog 1 "Starting ${} (interval: ${MONITOR_INTERVAL} seconds)..."
+	shlog 1 "Starting ${ourFriendlyScriptName} (interval: ${MONITOR_INTERVAL} seconds)..."
 
 	while true; do
 		local all_containers
