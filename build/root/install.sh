@@ -79,6 +79,9 @@ chmod -R 775 ${install_paths}
 # In install.sh heredoc, replace the chown section:
 cat <<EOF > /tmp/permissions_heredoc
 install_paths="${install_paths}"
+
+# permit user 'nobody' access to docker socket, required read and write
+chmod 666 '/var/run/docker.sock'
 EOF
 
 # replace permissions placeholder string with contents of file (here doc)

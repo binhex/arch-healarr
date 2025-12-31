@@ -27,9 +27,6 @@ function pre_reqs() {
 	if [[ ! -S '/var/run/docker.sock' ]]; then
 		shlog 3 "Docker socket is not mounted at '/var/run/docker.sock' inside container, exiting script..."
 		exit 1
-	else
-		# permit user 'nobody' access to docker socket, required read and write
-		chmod 666 '/var/run/docker.sock'
 	fi
 
 	if ! docker ps &> /dev/null; then
