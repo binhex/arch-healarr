@@ -94,7 +94,7 @@ if [[ -n "\${DOCKER_SOCK_GID}" ]]; then
     fi
 
     # Add nobody to docker group (by name, not GID)
-    usermod -aG docker nobody
+    usermod -aG users,docker nobody
 fi
 EOF
 
