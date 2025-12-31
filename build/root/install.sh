@@ -80,8 +80,22 @@ chmod -R 775 ${install_paths}
 cat <<EOF > /tmp/permissions_heredoc
 install_paths="${install_paths}"
 
-# permit user 'nobody' access to docker socket, required read and write
-chmod 666 '/var/run/docker.sock'
+# Get the GID of the mounted docker socket
+DOCKER_SOCK_GID=\$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
+
+if [[ -n "\${DOCKER_SOCK_GID}" ]]; then
+    # Check if docker group exists
+    if getent group docker >/dev/null 2>&1; then
+        # Docker group exists, modify its GID to match socket
+        groupmod -g "\${DOCKER_SOCK_GID}" docker
+    else
+        # Create docker group with matching GID
+        groupadd -g "\${DOCKER_SOCK_GID}" docker
+    fi
+
+    # Add nobody to docker group (by name, not GID)
+    usermod -aG docker nobody
+fi
 EOF
 
 # replace permissions placeholder string with contents of file (here doc)

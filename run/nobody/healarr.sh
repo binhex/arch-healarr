@@ -31,7 +31,8 @@ function pre_reqs() {
 
 	if ! docker ps &> /dev/null; then
 		exit_code=$?
-		shlog 3 "Cannot communicate with Docker daemon ('docker ps' returned non zero exit code '${exit_code}'), exiting script..."
+		shlog 3 "Cannot communicate with Docker daemon ('docker ps' returned non zero exit code '${exit_code}'), showing permissions before exiting script..."
+		ls -al '/var/run/docker.sock'
 		exit 1
 	fi
 
