@@ -19,14 +19,19 @@ function pre_reqs() {
 		exit 1
 	fi
 
-	# check if docker socket is accessible
-	if ! docker ps &> /dev/null; then
-		shlog 3 "Cannot communicate with Docker daemon, check socket is mounted at /var/run/docker.sock"
+	if ! command -v apprise &> /dev/null; then
+		shlog 3 "Apprise CLI not found, exiting script..."
 		exit 1
 	fi
 
-	if ! command -v apprise &> /dev/null; then
-		shlog 3 "Apprise CLI not found, exiting script..."
+	if [[ ! -f '/var/run/docker.sock' ]]; then
+		shlog 3 "Docker socket is not mounted at '/var/run/docker.sock' inside container, exiting script..."
+		exit 1
+	fi
+
+	if ! docker ps &> /dev/null; then
+		exit_code=$?
+		shlog 3 "Cannot communicate with Docker daemon ('docker ps' returned non zero exit code '${exit_code}'), exiting script..."
 		exit 1
 	fi
 
