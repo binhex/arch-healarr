@@ -13,6 +13,7 @@ Healarr monitors Docker containers for unhealthy status and automatically perfor
 - Multiple filtering options: by label, environment variable, or container name (OR logic)
 - Configurable actions: restart, stop, pause, unpause, kill
 - Structured logging with configurable log levels
+- Notification to multiple services via Apprise
 - Graceful shutdown handling
 
 ## Build notes
