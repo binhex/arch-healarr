@@ -24,7 +24,7 @@ function pre_reqs() {
 		exit 1
 	fi
 
-	if [[ ! -f '/var/run/docker.sock' ]]; then
+	if [[ ! -S '/var/run/docker.sock' ]]; then
 		shlog 3 "Docker socket is not mounted at '/var/run/docker.sock' inside container, exiting script..."
 		exit 1
 	fi
