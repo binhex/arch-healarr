@@ -172,6 +172,8 @@ function apprise_notifications() {
 
 	local container_name="${1}"
 	shift
+	local health_status="${1}"
+	shift
 	local action_status="${1}"
 	shift
 
@@ -193,7 +195,7 @@ function apprise_notifications() {
 		if apprise \
 			-vv \
 			-t "[${ourFriendlyScriptName}] Notification" \
-			-b "Container '${container_name}' was unhealthy. Action '${ACTION}' (${action_status})." \
+			-b "Container: '${container_name}', State: '${health_status}', Action: '${ACTION}', Result: '${action_status}'." \
 			${services}; then
 			shlog 1 "Notification sent for container '${container_name}'"
 		else
@@ -242,10 +244,10 @@ function process_unhealthy_container() {
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then
 			shlog 1 "Successfully executed action '${ACTION}' on container '${container_name}'"
-			apprise_notifications "${container_name}" "SUCCESS"
+			apprise_notifications "${container_name}" "${health_status}" "SUCCESS"
 		else
 			shlog 3 "Failed to execute action '${ACTION}' on container '${container_name}'"
-			apprise_notifications "${container_name}" "FAILED"
+			apprise_notifications "${container_name}" "${health_status}" "FAILED"
 		fi
 	fi
 
