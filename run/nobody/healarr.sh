@@ -206,7 +206,7 @@ function apprise_notifications() {
 function process_unhealthy_container() {
 
 	local container_name="${1}"
-  shift
+	shift
 
 	shlog 2 "Container '${container_name}' is unhealthy. Checking health status with retries..."
 
