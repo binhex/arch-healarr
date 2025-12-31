@@ -27,6 +27,9 @@ function pre_reqs() {
 	if [[ ! -S '/var/run/docker.sock' ]]; then
 		shlog 3 "Docker socket is not mounted at '/var/run/docker.sock' inside container, exiting script..."
 		exit 1
+	else
+		# permit user 'nobody' access to docker socket, required read and write
+		chmod 666 '/var/run/docker.sock'
 	fi
 
 	if ! docker ps &> /dev/null; then
@@ -249,10 +252,10 @@ function process_unhealthy_container() {
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then
 			shlog 1 "Successfully executed action '${ACTION}' on container '${container_name}'"
-			apprise_notifications "${container_name}" "${health_status}" "SUCCESS"
+			apprise_notifications "${container_name}" "${health_status}" "Success"
 		else
 			shlog 3 "Failed to execute action '${ACTION}' on container '${container_name}'"
-			apprise_notifications "${container_name}" "${health_status}" "FAILED"
+			apprise_notifications "${container_name}" "${health_status}" "Failed"
 		fi
 	fi
 
