@@ -94,18 +94,13 @@ function filter_containers() {
 
 	local all_containers="${1}"
 	shift
-
-	local unhealthy_containers
-	local current_container_id
-	local current_container_name
-
-	# get current container's ID (hostname in a container is the container ID)
-	current_container_id=$(cat /etc/hostname 2>/dev/null || cat /proc/sys/kernel/hostname 2>/dev/null)
-
-	# get current container's name from docker
-	current_container_name=$(docker inspect --format='{{.Name}}' "${current_container_id}" 2>/dev/null | sed 's#^/##')
+	local current_container_id="${1}"
+	shift
+	local current_container_name="${1}"
+	shift
 
 	# if any filters are defined, we need to check each container
+	local unhealthy_containers
 	if [[ -n "${CONTAINER_LABEL}" || -n "${CONTAINER_ENV_VAR}" || -n "${CONTAINER_NAME}" ]]; then
 
 		while IFS= read -r container; do
@@ -264,6 +259,26 @@ function process_containers() {
 	shlog 1 "Starting ${ourFriendlyScriptName} (interval: ${MONITOR_INTERVAL} seconds)..."
 
 	while true; do
+
+		local current_container_id
+		current_container_id=$(cat /etc/hostname 2>/dev/null || cat /proc/sys/kernel/hostname 2>/dev/null)
+
+		local self_health_status
+		self_health_status=$(docker inspect --format='{{.State.Health.Status}}' "${current_container_id}" 2>/dev/null)
+
+		local current_container_name
+		current_container_name=$(docker inspect --format='{{.Name}}' "${current_container_id}" 2>/dev/null | sed 's#^/##')
+
+		if [[ "${self_health_status,,}" == "unhealthy" ]]; then
+			shlog 2 "Healarr (${current_container_id}) is unhealthy (status: ${self_health_status}). Skipping container monitoring to prevent restart loops."
+			shlog 1 "Sleeping for ${MONITOR_INTERVAL} seconds before next check..."
+			sleep "${MONITOR_INTERVAL}" &
+			wait $!
+			continue
+		fi
+
+		shlog 1 "Healarr self-health check passed (status: ${self_health_status}). Proceeding with container monitoring..."
+
 		local all_containers
 
 		# get all unhealthy containers first
@@ -271,7 +286,7 @@ function process_containers() {
 
 		# apply filters if specified
 		if [[ -n "${all_containers}" ]]; then
-			filter_containers "${all_containers}"
+			filter_containers "${all_containers}" "${current_container_id}" "${current_container_name}"
 		else
 			# clear the global variable if no unhealthy containers found
 			UNHEALTHY_CONTAINERS=""
