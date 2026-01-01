@@ -80,21 +80,23 @@ chmod -R 775 ${install_paths}
 cat <<EOF > /tmp/permissions_heredoc
 install_paths="${install_paths}"
 
-# Get the GID of the mounted docker socket
-DOCKER_SOCK_GID=\$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
+# Get the GID of the mounted docker socket (if it exists)
+if [[ -S '/var/run/docker.sock' ]]; then
+    DOCKER_SOCK_GID=\$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
 
-if [[ -n "\${DOCKER_SOCK_GID}" ]]; then
-    # Check if docker group exists
-    if getent group docker >/dev/null 2>&1; then
-        # Docker group exists, modify its GID to match socket
-        groupmod -g "\${DOCKER_SOCK_GID}" docker
-    else
-        # Create docker group with matching GID
-        groupadd -g "\${DOCKER_SOCK_GID}" docker
+    if [[ -n "\${DOCKER_SOCK_GID}" ]]; then
+        # Check if docker group exists
+        if getent group docker >/dev/null 2>&1; then
+            # Docker group exists, modify its GID to match socket
+            groupmod -g "\${DOCKER_SOCK_GID}" docker
+        else
+            # Create docker group with matching GID
+            groupadd -g "\${DOCKER_SOCK_GID}" docker
+        fi
+
+        # Add nobody to docker group (by name, not GID)
+        usermod -aG users,docker nobody
     fi
-
-    # Add nobody to docker group (by name, not GID)
-    usermod -aG users,docker nobody
 fi
 EOF
 
