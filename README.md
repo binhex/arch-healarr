@@ -11,6 +11,7 @@ Healarr monitors Docker containers for unhealthy status and automatically perfor
 - Monitors Docker containers with health checks for unhealthy status
 - Configurable retry logic to verify unhealthy state before taking action
 - Multiple filtering options: by label, environment variable, or container name (OR logic)
+- Support for direct Docker socket or socket proxy connection
 - Configurable actions: restart, stop, pause, unpause, kill
 - Structured logging with configurable log levels
 - Notification to multiple services via Apprise
