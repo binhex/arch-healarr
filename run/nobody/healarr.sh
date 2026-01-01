@@ -24,16 +24,33 @@ function pre_reqs() {
 		exit 1
 	fi
 
-	if [[ ! -S '/var/run/docker.sock' ]]; then
-		shlog 3 "Docker socket is not mounted at '/var/run/docker.sock' inside container, exiting script..."
-		exit 1
-	fi
+	# check if using docker socket proxy (via DOCKER_HOST) or direct socket mount
+	if [[ -n "${DOCKER_HOST}" ]]; then
+		shlog 1 "Using Docker socket proxy at '${DOCKER_HOST}'"
 
-	if ! docker ps &> /dev/null; then
-		exit_code=$?
-		shlog 3 "Cannot communicate with Docker daemon ('docker ps' returned non zero exit code '${exit_code}'), showing permissions before exiting script..."
-		ls -al '/var/run/docker.sock'
-		exit 1
+		# test communication with docker socket proxy
+		if ! docker ps &> /dev/null; then
+			exit_code=$?
+			shlog 3 "Cannot communicate with Docker daemon via socket proxy at '${DOCKER_HOST}' ('docker ps' returned non zero exit code '${exit_code}'), exiting script..."
+			exit 1
+		fi
+
+		shlog 1 "Docker socket proxy connection successful"
+	else
+		# using direct docker socket mount
+		if [[ ! -S '/var/run/docker.sock' ]]; then
+			shlog 3 "Docker socket is not mounted at '/var/run/docker.sock' inside container and DOCKER_HOST is not set, exiting script..."
+			exit 1
+		fi
+
+		if ! docker ps &> /dev/null; then
+			exit_code=$?
+			shlog 3 "Cannot communicate with Docker daemon via socket at '/var/run/docker.sock' ('docker ps' returned non zero exit code '${exit_code}'), showing permissions before exiting script..."
+			ls -al '/var/run/docker.sock'
+			exit 1
+		fi
+
+		shlog 1 "Docker socket at '/var/run/docker.sock' is accessible"
 	fi
 
 	shlog 1 "Docker CLI and Apprise CLI found and accessible"

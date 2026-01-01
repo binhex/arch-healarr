@@ -20,6 +20,36 @@ Healarr monitors Docker containers for unhealthy status and automatically perfor
 
 Arch Linux base with Docker CLI.
 
+## Docker Socket Access
+
+Healarr supports two methods for accessing the Docker daemon:
+
+### Method 1: Direct Docker Socket Mount (Traditional)
+
+Mount the Docker socket directly into the container:
+
+```bash
+-v /var/run/docker.sock:/var/run/docker.sock
+```
+
+### Method 2: Docker Socket Proxy (Recommended for Security)
+
+Use a Docker socket proxy container for enhanced security:
+
+```bash
+-e DOCKER_HOST=tcp://dockersocket:2375
+```
+
+**Required proxy permissions:**
+
+- `CONTAINERS=1` - Read container information
+- `POST=1` - Allow POST requests (for restart/stop/etc)
+- `ALLOW_RESTARTS=1` - Allow restart action
+- `ALLOW_STOP=1` - Allow stop action (if using stop action)
+- `ALLOW_START=1` - Allow start action (if using unpause after pause)
+
+See examples below for complete socket proxy setup.
+
 ## Usage
 
 ```bash
@@ -28,6 +58,7 @@ docker run -d \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v <path for config files>:/config \
     -v /etc/localtime:/etc/localtime:ro \
+    -e DOCKER_HOST=<tcp://dockersocket:2375> \
     -e MONITOR_INTERVAL=<seconds between health checks> \
     -e RETRY_COUNT=<number of retry checks> \
     -e RETRY_DELAY=<seconds between retries> \
@@ -52,12 +83,14 @@ correct values.
 
 **Required Mount:**
 
-- `/var/run/docker.sock:/var/run/docker.sock` - Docker socket access (required for container management)
+- `/var/run/docker.sock:/var/run/docker.sock` - Docker socket access (required for container management) **OR**
+- `DOCKER_HOST` environment variable - For use with Docker socket proxy (see examples below)
 
 ## Environment Variables
 
 | Variable | Values | Default | Description |
 | -------- | ------ | ------- | ----------- |
+| `DOCKER_HOST` | string | _(empty)_ | Docker socket proxy address (e.g. `tcp://dockersocket:2375`). Use as a secure alternative to mounting `/var/run/docker.sock`. Leave empty to use direct socket mount. |
 | `MONITOR_INTERVAL` | integer | `60` | Time in seconds between checking for unhealthy containers |
 | `RETRY_COUNT` | integer | `3` | Number of times to verify unhealthy status before taking action |
 | `RETRY_DELAY` | integer | `10` | Time in seconds to wait between retry health checks |
@@ -70,7 +103,7 @@ correct values.
 | `ENABLE_HEALTHCHECK` | yes\|no | `no` | Enable or disable healthchecks (for this container) |
 | `HEALTHCHECK_COMMAND` | string | `healthcheck.sh` | Healthcheck command or script to execute |
 | `HEALTHCHECK_ACTION` | string | `exit 1` | Action on healthcheck failure, e.g. `exit 1` or `kill 1` |
-| `HEALTHCHECK_HOSTNAME` | string | `google.com` | Hostname for healthcheck DNS/HTTPS tests |
+| `HEALTHCHECK_HOSTNAME` | string | `cloudflare.com` | Hostname for healthcheck DNS/HTTPS tests |
 | `PUID` | integer | `99` | User ID for the running container |
 | `PGID` | integer | `100` | Group ID for the running container |
 | `UMASK` | integer | `000` | UMASK for created files |
@@ -161,6 +194,46 @@ docker run -d \
     -e PGID=100 \
     ghcr.io/binhex/arch-healarr
 ```
+
+### Example 5: Using Docker Socket Proxy (LinuxServer.io)
+
+First, create a Docker socket proxy container:
+
+```bash
+docker run -d \
+    --name=dockersocket \
+    --restart=unless-stopped \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -e CONTAINERS=1 \
+    -e POST=1 \
+    -e ALLOW_RESTARTS=1 \
+    -e ALLOW_STOP=1 \
+    -e ALLOW_START=1 \
+    --network=docker-management \
+    lscr.io/linuxserver/socket-proxy:latest
+```
+
+Then run Healarr using the socket proxy:
+
+```bash
+docker run -d \
+    --name=healarr \
+    -v /apps/docker/healarr:/config \
+    -v /etc/localtime:/etc/localtime:ro \
+    -e DOCKER_HOST=tcp://dockersocket:2375 \
+    -e MONITOR_INTERVAL=60 \
+    -e RETRY_COUNT=3 \
+    -e RETRY_DELAY=10 \
+    -e ACTION=restart \
+    -e LOG_LEVEL=1 \
+    -e UMASK=000 \
+    -e PUID=99 \
+    -e PGID=100 \
+    --network=docker-management \
+    ghcr.io/binhex/arch-healarr
+```
+
+**Important Note:** Both containers MUST be on the same Docker network (`docker-management` in this example).
 
 ## Notes
 
