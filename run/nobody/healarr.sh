@@ -77,6 +77,8 @@ function env_vars() {
 	if [[ -z "${ACTION}" ]]; then
 		export ACTION="restart"
 		shlog 2 "ACTION not defined, defaulting to '${ACTION}'"
+	else
+		ACTION="${ACTION,,}"
 	fi
 
 	if [[ -n "${APPRISE_NOTIFICATION_SERVICES}" ]]; then
@@ -258,6 +260,12 @@ function process_unhealthy_container() {
 
 	# if still unhealthy after all retries, execute action
 	if [[ "${still_unhealthy}" == "true" ]]; then
+
+		if [[ "${ACTION}" == "none" ]]; then
+			shlog 2 "Action set to '${ACTION}', no action taken on container '${container_name}' after ${RETRY_COUNT} unsuccessful health checks"
+			return 0
+		fi
+
 		shlog 2 "Container '${container_name}' still unhealthy after ${RETRY_COUNT} checks. Executing action '${ACTION}'..."
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then

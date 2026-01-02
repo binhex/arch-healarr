@@ -63,7 +63,7 @@ docker run -d \
     -e MONITOR_INTERVAL=<seconds between health checks> \
     -e RETRY_COUNT=<number of retry checks> \
     -e RETRY_DELAY=<seconds between retries> \
-    -e ACTION=<restart|stop|pause|unpause|kill> \
+    -e ACTION=<restart|stop|pause|unpause|kill|none> \
     -e CONTAINER_LABEL=<label to filter> \
     -e CONTAINER_ENV_VAR=<env var to filter> \
     -e CONTAINER_NAME=<comma separated names> \
@@ -95,7 +95,7 @@ correct values.
 | `MONITOR_INTERVAL` | integer | `60` | Time in seconds between checking for unhealthy containers |
 | `RETRY_COUNT` | integer | `3` | Number of times to verify unhealthy status before taking action |
 | `RETRY_DELAY` | integer | `10` | Time in seconds to wait between retry health checks |
-| `ACTION` | restart\|stop\|pause\|unpause\|kill | `restart` | Docker action to execute on unhealthy containers |
+| `ACTION` | restart\|stop\|pause\|unpause\|kill\|none | `restart` | Docker action to execute on unhealthy containers, set to 'none' to perform no action |
 | `CONTAINER_LABEL` | string | _(empty)_ | Filter containers by label (e.g. `com.example.monitor=true`) |
 | `CONTAINER_ENV_VAR` | string | _(empty)_ | Filter containers by environment variable (e.g. `MONITOR_ENABLED=true`) |
 | `CONTAINER_NAME` | string | _(empty)_ | Filter containers by name, comma-separated (e.g. `sonarr,radarr,plex`) |
