@@ -62,16 +62,22 @@ function env_vars() {
 	if [[ -z "${MONITOR_INTERVAL}" ]]; then
 		export MONITOR_INTERVAL=60
 		shlog 2 "MONITOR_INTERVAL not defined, defaulting to '${MONITOR_INTERVAL}' seconds"
+	else
+		shlog 1 "MONITOR_INTERVAL set to '${MONITOR_INTERVAL}' seconds"
 	fi
 
 	if [[ -z "${RETRY_COUNT}" ]]; then
 		export RETRY_COUNT=3
 		shlog 2 "RETRY_COUNT not defined, defaulting to '${RETRY_COUNT}'"
+	else
+		shlog 1 "RETRY_COUNT set to '${RETRY_COUNT}'"
 	fi
 
 	if [[ -z "${RETRY_DELAY}" ]]; then
 		export RETRY_DELAY=10
 		shlog 2 "RETRY_DELAY not defined, defaulting to '${RETRY_DELAY}' seconds"
+	else
+		shlog 1 "RETRY_DELAY set to '${RETRY_DELAY}' seconds"
 	fi
 
 	if [[ -z "${ACTION}" ]]; then
@@ -79,6 +85,7 @@ function env_vars() {
 		shlog 2 "ACTION not defined, defaulting to '${ACTION}'"
 	else
 		ACTION="${ACTION,,}"
+		shlog 1 "ACTION set to '${ACTION}'"
 	fi
 
 	if [[ -n "${APPRISE_NOTIFICATION_SERVICES}" ]]; then
