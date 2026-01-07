@@ -268,12 +268,13 @@ function process_unhealthy_container() {
 	# if still unhealthy after all retries, execute action
 	if [[ "${still_unhealthy}" == "true" ]]; then
 
+		shlog 2 "Container '${container_name}' still unhealthy after ${RETRY_COUNT} checks. Executing action '${ACTION}'..."
+
 		if [[ "${ACTION}" == "none" ]]; then
-			shlog 2 "Action set to '${ACTION}', no action taken on container '${container_name}' after ${RETRY_COUNT} unsuccessful health checks"
+			shlog 1 "Action set to '${ACTION}', no action taken on container '${container_name}'"
+			apprise_notifications "${container_name}" "${health_status}" "N/A"
 			return 0
 		fi
-
-		shlog 2 "Container '${container_name}' still unhealthy after ${RETRY_COUNT} checks. Executing action '${ACTION}'..."
 
 		if docker "${ACTION}" "${container_name}" &>/dev/null; then
 			shlog 1 "Successfully executed action '${ACTION}' on container '${container_name}'"
